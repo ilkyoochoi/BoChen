@@ -8,4 +8,4 @@ What is the input?
 - The input is a finite number of points.
 
 How does the basic algorithm work?
-- 
+- Do the algorithm presented in class. It's basically a series of Ham-Sandwich cuts that will produce the centerpoint region.
