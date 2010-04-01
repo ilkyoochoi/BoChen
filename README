@@ -1,1 +1,11 @@
-HI BO
+What does your program do?
+- Given a set of input points, it finds the centerpoint region.
+
+How do I get it to run?
+- There will be a button to execute the algorithm and you just click on it.
+
+What is the input?
+- The input is a finite number of points.
+
+How does the basic algorithm work?
+- 
