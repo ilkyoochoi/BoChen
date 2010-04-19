@@ -1,24 +1,24 @@
 ArrayList points;
 ArrayList lines;
 
-static final int DIAMETER = 8;
-static final int WINDOW_WIDTH = 400;
-static final int WINDOW_HEIGHT = 400;
-static final int BUTTON_WIDTH = 25;
-static final int BUTTON_HEIGHT = 25;
-static final int GO_X = 375;
-static final int GO_Y = 375;
-static final int RESET_X = 0;
-static final int RESET_Y = 375;
-static final int BACKGROUND_COLOR = 255;
-static final int DRAW_COLOR = 0;
+final int DIAMETER = 8;
+final int WINDOW_WIDTH = 400;
+final int WINDOW_HEIGHT = 400;
+final int BUTTON_WIDTH = 25;
+final int BUTTON_HEIGHT = 25;
+final int GO_X = WINDOW_WIDTH - BUTTON_WIDTH;
+final int GO_Y = WINDOW_HEIGHT - BUTTON_HEIGHT;
+final int RESET_X = 0;
+final int RESET_Y = WINDOW_HEIGHT - BUTTON_HEIGHT;
+final int BACKGROUND_COLOR = 255;
+final int DRAW_COLOR = 0;
+final int REGION_COLOR = color(0, 255, 0);
 
 void setup() {
-  size(400, 400);
+  size(400, 400); // Export seems to only like magic numbers here.
   stroke(DRAW_COLOR);
   background(BACKGROUND_COLOR);
-  rect(RESET_X, RESET_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
-  rect(GO_X, GO_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
+  makeButtons();
   fill(DRAW_COLOR);
   points = new ArrayList();
   lines = new ArrayList();
@@ -29,12 +29,15 @@ void reset() {
   fill(BACKGROUND_COLOR);
   rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
   stroke(DRAW_COLOR);
-  rect(RESET_X, RESET_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
-  rect(GO_X, GO_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
+  makeButtons();
   fill(DRAW_COLOR);
-  
   points.clear();
   lines.clear();
+}
+
+void makeButtons() {
+  rect(RESET_X, RESET_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
+  rect(GO_X, GO_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
 }
 		  
 void draw() {
@@ -42,7 +45,21 @@ void draw() {
      
 void mousePressed() {
   if (mouseX > GO_X && mouseY > GO_Y) {
+    stroke(REGION_COLOR);
+    fill(REGION_COLOR);
+    rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    stroke(BACKGROUND_COLOR);
+    fill(BACKGROUND_COLOR);
     centerpoint();
+    stroke(DRAW_COLOR);
+    makeButtons();
+    fill(DRAW_COLOR);
+    for (int i = 0; i < points.size(); i++) {
+      drawPoint((Point)points.get(i));
+      for (int j = i+1; j < points.size(); j++) {
+        line(((Point)points.get(i)).x, ((Point)points.get(i)).y, ((Point)points.get(j)).x, ((Point)points.get(j)).y);
+      }
+    }
   }
   else if(mouseX < RESET_X + BUTTON_WIDTH && mouseY > RESET_Y) {
     reset();
@@ -72,31 +89,30 @@ void centerpoint() {
           count2++;
         }
         //lines.add(new Line((Point)points.get(i), (Point)points.get(j)));
-        //line((long)((Point)points.get(i)).x, (long)((Point)points.get(i)).y, (long)((Point)points.get(j)).x, (long)((Point)points.get(j)).y);
+        //line(((Point)points.get(i)).x, ((Point)points.get(i)).y, ((Point)points.get(j)).x, ((Point)points.get(j)).y);
       }
       Point a = (Point)points.get(i);
       Point b = (Point)points.get(j);
-      boolean flipped = count2 < min;
-      boolean inOrder = a.x < b.x;
-      flipped = flipped == inOrder;
+      boolean flipped = count2 < min == a.x < b.x;      
+      float y1 = isInRange(a, b, 0);
+      float y2 = isInRange(a, b, WINDOW_WIDTH);
+      float xymax = (WINDOW_HEIGHT - b.y) * (a.x - b.x) / (a.y - b.y) + b.x;
+      float xymin = (-b.y)*(a.x - b.x) / (a.y - b.y) + b.x;
       
-      long y1 = isInRange(a, b, 0);
-      long y2 = isInRange(a, b, WINDOW_WIDTH);
+      //println("Point a is " + a.x + ", " + a.y + " and point b is " + b.x + ", " + b.y + " and y1 is " + y1 + " and y2 is " + y2 + " and count1 is " + count1 + " and count2 is " + count2);
       
-      println("Point a is " + a.x + ", " + a.y + " and point b is " + b.x + ", " + b.y + " and y1 is " + y1 + " and y2 is " + y2 + " and count1 is " + count1 + " and count2 is " + count2);
-      
+      // Both half-spaces are acceptable, so continue iterating.
       if (count1 >= min && count2 >= min) {
         continue;
       }
       
+      // Both half-spaces need to be removed.
       if (count1 < min && count2 < min) {
         rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
         return;
       }
       
-      long xymax = (long)((WINDOW_HEIGHT - b.y) * (a.x - b.x) / (a.y - b.y) + b.x);
-      long xymin = (long)((-b.y)*(a.x - b.x) / (a.y - b.y) + b.x);
-      
+      // Dealing with all the cases for shaving off one half-space.
       if (y1 >= 0 && y2 >= 0 && y1 <= WINDOW_HEIGHT && y2 <= WINDOW_HEIGHT) {
         if (flipped) {
           quad(0, y1, 0, WINDOW_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH, y2);
@@ -176,12 +192,12 @@ void centerpoint() {
   }
 }
 
-long isInRange(Point a, Point b, long x) {
-  return (long)((a.y - b.y) * (x - b.x) / (a.x - b.x) + b.y);
+float isInRange(Point a, Point b, int x) {
+  return (a.y - b.y) * (x - b.x) / (a.x - b.x) + b.y;
 }
 
 void drawPoint(Point p) {
-  ellipse((long)p.x, (long)p.y, DIAMETER, DIAMETER);
+  ellipse(p.x, p.y, DIAMETER, DIAMETER);
 }
 
 boolean isCCW(Point a, Point b, Point c) {
@@ -189,9 +205,9 @@ boolean isCCW(Point a, Point b, Point c) {
 }
 
 class Point {
-  double x,y;
+  float x,y;
   
-  Point (double x, double y) {
+  Point (float x, float y) {
     this.x = x;
     this.y = y;
   }
