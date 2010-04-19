@@ -1,89 +1,128 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  <head>
+    <!-- charset must remain utf-8 to be handled properly by Processing -->
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 
-	<title>ilkyoochoi/BoChen @ GitHub</title>
+    <title>Centerpoint : Built with Processing</title>
+
+    <style type="text/css">
+      /* <![CDATA[ */
 	
-	<style type="text/css">
-		body {
-  		margin-top: 1.0em;
-  		background-color: #0f0f95;
-		  font-family: "Helvetica,Arial,FreeSans";
-  		color: #ffffff;
-    }
-    #container {
-      margin: 0 auto;
-      width: 700px;
-    }
-		h1 { font-size: 3.8em; color: #f0f06a; margin-bottom: 3px; }
-		h1 .small { font-size: 0.4em; }
-		h1 a { text-decoration: none }
-		h2 { font-size: 1.5em; color: #f0f06a; }
-    h3 { text-align: center; color: #f0f06a; }
-    a { color: #f0f06a; }
-    .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
-    .download { float: right; }
-		pre { background: #000; color: #fff; padding: 15px;}
-    hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
-    .footer { text-align:center; padding-top:30px; font-style: italic; }
-	</style>
+	body {
+  	  margin: 60px 0px 0px 55px;
+	  font-family: verdana, geneva, arial, helvetica, sans-serif; 
+	  font-size: 11px; 
+	  background-color: #ddddcc; 
+	  text-decoration: none; 
+	  font-weight: normal; 
+	  line-height: normal; 
+	}
+		 
+	a          { color: #3399cc; }
+	a:link     { color: #3399cc; text-decoration: underline; }
+	a:visited  { color: #3399cc; text-decoration: underline; }
+	a:active   { color: #3399cc; text-decoration: underline; }
+	a:hover    { color: #3399cc; text-decoration: underline; }
+
+      /* ]]> */
+    </style>    
+  </head>
+
+  <body>
+    <div id="content">
+      <div id="Centerpoint_container">
+
+	<!-- This version plays nicer with older browsers, 
+	     but requires JavaScript to be enabled. 
+	     http://java.sun.com/javase/6/docs/technotes/guides/jweb/deployment_advice.html -->
+	<script type="text/javascript"
+		src="http://www.java.com/js/deployJava.js"></script>
+	<script type="text/javascript">
+	  /* <![CDATA[ */
+
+	  var attributes = { code:'Centerpoint.class',
+                             archive: 'Centerpoint.jar',
+                             width:400, height:400 } ;
+          var parameters = { };
+          var version = '1.5';
+          deployJava.runApplet(attributes, parameters, version);
+
+          /* ]]> */
+        </script>
+        
+	<noscript> <div>
+	  <!--[if !IE]> -->
+	  <object classid="java:Centerpoint.class" 
+            	  type="application/x-java-applet"
+            	  archive="Centerpoint.jar"
+            	  width="400" height="400"
+            	  standby="Loading Processing software..." >
+            
+	    <param name="archive" value="Centerpoint.jar" />
+	    
+	    <param name="mayscript" value="true" />
+	    <param name="scriptable" value="true" />
+	    
+	    <param name="image" value="loading.gif" />
+	    <param name="boxmessage" value="Loading Processing software..." />
+	    <param name="boxbgcolor" value="#FFFFFF" />
+	    
+	    <param name="test_string" value="outer" />
+	  <!--<![endif]-->
+
+	    <!-- For more instructions on deployment, 
+		 or to update the CAB file listed here, see:
+		 http://java.sun.com/javase/6/webnotes/family-clsid.html
+		 http://java.sun.com/javase/6/webnotes/install/jre/autodownload.html -->
+	    <object classid="clsid:8AD9C840-044E-11D1-B3E9-00805F499D93"
+		    codebase="http://java.sun.com/update/1.6.0/jinstall-6u18-windows-i586.cab"
+		    width="400" height="400"
+		    standby="Loading Processing software..."  >
+	      
+	      <param name="code" value="Centerpoint" />
+	      <param name="archive" value="Centerpoint.jar" />
+	      
+	      <param name="mayscript" value="true" />
+	      <param name="scriptable" value="true" />
+	      
+	      <param name="image" value="loading.gif" />
+	      <param name="boxmessage" value="Loading Processing software..." />
+	      <param name="boxbgcolor" value="#FFFFFF" />
+	      
+	      <param name="test_string" value="inner" />
+	      
+	      <p>
+		<strong>
+		  This browser does not have a Java Plug-in.
+		  <br />
+		  <a href="http://www.java.com/getjava" title="Download Java Plug-in">
+		    Get the latest Java Plug-in here.
+		  </a>
+		</strong>
+	      </p>
+	      
+	    </object>
+	    
+	  <!--[if !IE]> -->
+	  </object>
+	  <!--<![endif]-->
+
+	</div> </noscript>
+
+      </div>
+      
+      <p>
 	
-</head>
-
-<body>
-  <a href="http://github.com/ilkyoochoi/BoChen"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
-
-  <div id="container">
-
-    <div class="download">
-      <a href="http://github.com/ilkyoochoi/BoChen/zipball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></a>
-      <a href="http://github.com/ilkyoochoi/BoChen/tarball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
+      </p>
+      
+      <p>
+	Source code: <a href="Centerpoint.pde">Centerpoint</a> 
+      </p>
+      
+      <p>
+	Built with <a href="http://processing.org" title="Processing.org">Processing</a>
+      </p>
     </div>
-
-    <h1><a href="http://github.com/ilkyoochoi/BoChen">BoChen</a>
-      <span class="small">by <a href="http://github.com/ilkyoochoi">ilkyoochoi</a></span></h1>
-
-    <div class="description">
-      15456 Computational Geometry. Center Points.
-    </div>
-
-    <h2>Applet Page (Work in progress)</h2>
-    <p>
-    <a href="Applet.html">Applet</a>
-    </p>
-
-    <h2>Authors</h2>
-<p>ilkyoochoi (ilkyooc@andrew.cmu.edu)
-<br/>BoChen (chenbo@juno.com)
-<br/>
-<br/>      </p>
-<h2>Contact</h2>
-<p> (ilkyooc@andrew.cmu.edu)
-<br/>(chenbo@juno.com)      </p>
-
-
-    <h2>Download</h2>
-    <p>
-      You can download this project in either
-      <a href="http://github.com/ilkyoochoi/BoChen/zipball/master">zip</a> or
-      <a href="http://github.com/ilkyoochoi/BoChen/tarball/master">tar</a> formats.
-    </p>
-    <p>You can also clone the project with <a href="http://git-scm.com">Git</a>
-      by running:
-      <pre>$ git clone git://github.com/ilkyoochoi/BoChen</pre>
-    </p>
-
-    <div class="footer">
-      get the source code on GitHub : <a href="http://github.com/ilkyoochoi/BoChen">ilkyoochoi/BoChen</a>
-    </div>
-
-  </div>
-
-  
-</body>
+  </body>
 </html>
