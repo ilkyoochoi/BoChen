@@ -9,6 +9,9 @@ ArrayList bottomLeft;
 ArrayList topRight;
 ArrayList bottomRight;
 
+boolean runAlgo = false;
+boolean showPoints = false;
+
 final int DIAMETER = 8;
 final int WINDOW_WIDTH = 400;
 final int WINDOW_HEIGHT = 400;
@@ -25,6 +28,7 @@ final int DRAW_COLOR = 0;
 final int REGION_COLOR = color(0, 255, 0);
 final int RED = color(255, 0, 0);
 final int BLUE = color(0, 0, 255);
+final int YELLOW = color(255, 255, 0);
 final float EPSILON = 3;
 
 void setup() {
@@ -63,9 +67,90 @@ void makeButtons() {
 }
 		  
 void draw() {
+  if (points.size() < 10) {
+    runAlgo = false;
+  }
+  
+  if (runAlgo) {
+    stroke(BACKGROUND_COLOR);
+    fill(BACKGROUND_COLOR);
+    rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    stroke(DRAW_COLOR);
+    makeButtons();
+    fill(DRAW_COLOR);
+    for (int i = 0; i < points.size(); i++) {
+      drawPoint((Point)points.get(i));
+    }
+      
+    delay(3000);
+    
+    showPoints = !showPoints;
+    if (!showPoints) {
+      return;
+    }
+    
+    Line L = findL();
+    stroke(YELLOW);
+    line(L.a.x, L.a.y, L.b.x, L.b.y);
+    Line hm1 = stretchLine(getHSC(leftPoints, rightPoints, 0.25, 0.375, ((points.size() + 2) / 3) - 1));
+    stroke(RED);
+    line(hm1.a.x, hm1.a.y, hm1.b.x, hm1.b.y);
+    Line hm2 = stretchLine(getHSC(leftPoints, rightPoints, 0.75, 0.625, points.size() - ((points.size() - 1) / 3)));
+    stroke(BLUE);
+    line(hm2.a.x, hm2.a.y, hm2.b.x, hm2.b.y);
+    Line hm3 = stretchLine(getHSC2(topPoints, bottomPoints, (points.size() / 12) - 1 , (points.size() / 12) - 1, ((points.size() + 2) / 3) - 1, hm1, hm2));
+    stroke(REGION_COLOR);
+    line(hm3.a.x, hm3.a.y, hm3.b.x, hm3.b.y);
+    
+    println(points.size() + " you happy now?");
+    stroke(DRAW_COLOR);
+    
+    Point hm3A = hm3.a;
+    Point hm3B = hm3.b;
+    if (hm3.a.y > hm3.b.y) {
+      hm3A = hm3.b;
+      hm3B = hm3.a;
+    }
+    for (int i = 0; i < rightPoints.size(); i++) {
+      if (!isCCW(hm3A, hm3B, (Point)rightPoints.get(i))) {
+        rightPoints.remove(i--);
+      }
+    }
+      
+    println(leftPoints.size() + " " + rightPoints.size() + " " + topPoints.size() + " " + bottomPoints.size());
+    
+    topLeft = getIntersection(leftPoints, topPoints);
+    topRight = getIntersection(rightPoints, topPoints);
+    bottomLeft = getIntersection(leftPoints, bottomPoints);
+    bottomRight = getIntersection(rightPoints, bottomPoints);
+    
+    println(topLeft.size()+" "+topRight.size()+" "+bottomLeft.size()+" "+bottomRight.size());
+    
+    if (topLeft.isEmpty() || topRight.isEmpty() || bottomLeft.isEmpty() || bottomRight.isEmpty()) {
+      runAlgo = false;
+    }
+    
+    while (!(topLeft.isEmpty() || topRight.isEmpty() || bottomLeft.isEmpty() || bottomRight.isEmpty())) {
+      drawLine(new Line((Point)topLeft.get(0), (Point)topRight.get(0)));
+      drawLine(new Line((Point)topLeft.get(0), (Point)bottomLeft.get(0)));
+      drawLine(new Line((Point)topLeft.get(0), (Point)bottomRight.get(0)));
+      drawLine(new Line((Point)topRight.get(0), (Point)bottomLeft.get(0)));
+      drawLine(new Line((Point)topRight.get(0), (Point)bottomRight.get(0)));
+      drawLine(new Line((Point)bottomLeft.get(0), (Point)bottomRight.get(0)));
+      radonKill(topLeft, topRight, bottomLeft, bottomRight);
+    }
+    leftPoints.clear();
+    rightPoints.clear();
+    topPoints.clear();
+    bottomPoints.clear();
+  }
 }
      
 void mousePressed() {
+  if (runAlgo) {
+    return;
+  }
+  
   if (mouseX > GO_X && mouseY > GO_Y) {
     stroke(REGION_COLOR);
     fill(REGION_COLOR);
@@ -87,53 +172,7 @@ void mousePressed() {
     reset();
   }
   else if (mouseX > TEST_X && mouseX < TEST_X + BUTTON_WIDTH && mouseY > TEST_Y) {
-    //while (points.size() >= 10) {
-      Line L = findL();
-      line(L.a.x, L.a.y, L.b.x, L.b.y);
-      Line hm1 = stretchLine(getHSC(leftPoints, rightPoints, 0.25, 0.375, ((points.size() + 2) / 3) - 1));
-      stroke(RED);
-      line(hm1.a.x, hm1.a.y, hm1.b.x, hm1.b.y);
-      Line hm2 = stretchLine(getHSC(leftPoints, rightPoints, 0.75, 0.625, points.size() - ((points.size() - 1) / 3)));
-      stroke(BLUE);
-      line(hm2.a.x, hm2.a.y, hm2.b.x, hm2.b.y);
-      Line hm3 = stretchLine(getHSC2(topPoints, bottomPoints, (points.size() / 12) - 1 , (points.size() / 12) - 1, ((points.size() + 2) / 3) - 1, hm1, hm2));
-      stroke(REGION_COLOR);
-      line(hm3.a.x, hm3.a.y, hm3.b.x, hm3.b.y);
-    
-      println(points.size() + " you happy now?");
-      stroke(DRAW_COLOR);
-    
-      for (int i = 0; i < rightPoints.size(); i++) {
-        if (!isCCW(hm3.a, hm3.b, (Point)rightPoints.get(i))) {
-          rightPoints.remove(i--);
-        }
-      }
-      
-      //delay(3000);
-      
-      println(leftPoints.size() + " " + rightPoints.size() + " " + topPoints.size() + " " + bottomPoints.size());
-      
-      topLeft = getIntersection(leftPoints, topPoints);
-      topRight = getIntersection(rightPoints, topPoints);
-      bottomLeft = getIntersection(leftPoints, bottomPoints);
-      bottomRight = getIntersection(rightPoints, bottomPoints);
-    
-      println(topLeft.size()+" "+topRight.size()+" "+bottomLeft.size()+" "+bottomRight.size());
-      
-      /*while (!(topLeft.isEmpty() || topRight.isEmpty() || bottomLeft.isEmpty() || bottomRight.isEmpty())) {
-        radonKill(topLeft, topRight, bottomLeft, bottomRight);
-      }
-      leftPoints.clear();
-      rightPoints.clear();
-      topPoints.clear();
-      bottomPoints.clear();
-      stroke(BACKGROUND_COLOR);
-      fill(BACKGROUND_COLOR);
-      rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-      stroke(DRAW_COLOR);
-      makeButtons();
-      fill(DRAW_COLOR);
-    }*/
+    runAlgo = true;
   }
   else {
     Point p = new Point(mouseX, mouseY);
@@ -246,6 +285,10 @@ void drawPoint(Point p) {
   ellipse(p.x, p.y, DIAMETER, DIAMETER);
 }
 
+void drawLine(Line l) {
+  line(l.a.x, l.a.y, l.b.x, l.b.y);
+}
+
 boolean isCCW(Point a, Point b, Point c) {
   return (b.x - a.x)*(c.y - a.y) - (c.x - a.x)*(b.y - a.y) < 0;
 }
@@ -322,8 +365,8 @@ Line findL() {
 
 Line getHSC(ArrayList leftPoints, ArrayList rightPoints, float leftRatio, float rightRatio, int topTarget) {
   ArrayList candidates = new ArrayList();
-  int leftTarget = Math.max(Math.round(leftRatio * leftPoints.size()), 1);
-  int rightTarget = Math.max(Math.round(rightRatio * rightPoints.size()), 1);
+  int leftTarget = Math.round(leftRatio * leftPoints.size());
+  int rightTarget = Math.round(rightRatio * rightPoints.size());
   for (int i = 0; i < points.size(); i++) {
     for (int j = i + 1; j < points.size(); j++) {
       Point a = (Point)points.get(i);
