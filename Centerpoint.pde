@@ -272,12 +272,23 @@ void loadTopBottom(Line top, Line bottom) {
     }
   }
   
-  // TODO: Sort line by coordinate
+  Point topA = top.a;
+  Point topB = top.b;
+  if (top.a.x > top.b.x) {
+    topA = top.b;
+    topB = top.a;
+  }
+  Point bottomA = bottom.a;
+  Point bottomB = bottom.b;
+  if (bottom.a.x > bottom.b.x) {
+    bottomA = bottom.b;
+    bottomB = bottom.a;
+  }
   for (int i = 0; i < points.size(); i++) {
-    if (isCCW(top.a, top.b, (Point)points.get(i))) {
+    if (isCCW(topA, topB, (Point)points.get(i))) {
       topPoints.add(points.get(i));
     }
-    else if (isCCW(bottom.b, bottom.a, (Point)points.get(i))) {
+    else if (isCCW(bottomB, bottomA, (Point)points.get(i))) {
       bottomPoints.add(points.get(i));
     }
   }
