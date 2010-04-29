@@ -10,13 +10,19 @@ ArrayList topRight;
 ArrayList bottomRight;
 
 boolean runAlgo = false;
-boolean showPoints = false;
+boolean findRadon = false;
+boolean showRadon = false;
+
+Line L;
+Line hm1;
+Line hm2;
+Line hm3;
 
 final int DIAMETER = 8;
-final int WINDOW_WIDTH = 400;
-final int WINDOW_HEIGHT = 400;
-final int BUTTON_WIDTH = 25;
-final int BUTTON_HEIGHT = 25;
+final int WINDOW_WIDTH = 600;
+final int WINDOW_HEIGHT = 600;
+final int BUTTON_WIDTH = 36;
+final int BUTTON_HEIGHT = 30;
 final int GO_X = WINDOW_WIDTH - BUTTON_WIDTH;
 final int GO_Y = WINDOW_HEIGHT - BUTTON_HEIGHT;
 final int RESET_X = 0;
@@ -29,10 +35,41 @@ final int REGION_COLOR = color(0, 255, 0);
 final int RED = color(255, 0, 0);
 final int BLUE = color(0, 0, 255);
 final int YELLOW = color(255, 255, 0);
+final int TEAL = color(0, 255, 255);
 final float EPSILON = 3;
 
+class Point {
+  float x,y;
+  
+  Point (float x, float y) {
+    this.x = x;
+    this.y = y;
+  }
+}
+
+class Line {
+  Point a,b;
+  
+  Line (Point a, Point b) {
+    this.a = a;
+    this.b = b;
+  }
+  
+  Point getIntersect(Line otherLine) {
+    return new Point(
+      ((a.x*b.y - a.y*b.x)*(otherLine.a.x - otherLine.b.x) - (a.x - b.x)*(otherLine.a.x*otherLine.b.y - otherLine.a.y*otherLine.b.x)) /
+      ((a.x - b.x)*(otherLine.a.y - otherLine.b.y) - (a.y - b.y)*(otherLine.a.x - otherLine.b.x)),
+      ((a.x*b.y - a.y*b.x)*(otherLine.a.y - otherLine.b.y) - (a.y - b.y)*(otherLine.a.x*otherLine.b.y - otherLine.a.y*otherLine.b.x)) /
+      ((a.x - b.x)*(otherLine.a.y - otherLine.b.y) - (a.y - b.y)*(otherLine.a.x - otherLine.b.x)));
+  }
+  
+  boolean isParallel(Line otherLine) {
+    return (b.y - a.y)*(otherLine.b.x - otherLine.a.x) == (b.x - a.x)*(otherLine.b.y - otherLine.a.y);
+  }
+}
+
 void setup() {
-  size(400, 400); // Export seems to only like magic numbers here.
+  size(600, 600); // Export seems to only like magic numbers here.
   stroke(DRAW_COLOR);
   background(BACKGROUND_COLOR);
   makeButtons();
@@ -64,6 +101,11 @@ void makeButtons() {
   rect(RESET_X, RESET_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
   rect(GO_X, GO_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
   rect(TEST_X, TEST_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
+  fill(DRAW_COLOR);
+  text("Clear", RESET_X + 2, RESET_Y + (3 * BUTTON_HEIGHT / 4));
+  text("Run", GO_X + 8, GO_Y + (3 * BUTTON_HEIGHT / 4));
+  text("Test", TEST_X + 6, TEST_Y + (3 * BUTTON_HEIGHT / 4));
+  fill(BACKGROUND_COLOR);
 }
 		  
 void draw() {
@@ -82,28 +124,39 @@ void draw() {
       drawPoint((Point)points.get(i));
     }
       
-    delay(3000);
+    delay(1500);
     
-    showPoints = !showPoints;
-    if (!showPoints) {
+    if (showRadon) {
+      showRadon = false;
+      drawCuts();
       return;
     }
     
-    Line L = findL();
-    stroke(YELLOW);
-    line(L.a.x, L.a.y, L.b.x, L.b.y);
-    Line hm1 = stretchLine(getHSC(leftPoints, rightPoints, 0.25, 0.375, ((points.size() + 2) / 3) - 1));
-    stroke(RED);
-    line(hm1.a.x, hm1.a.y, hm1.b.x, hm1.b.y);
-    Line hm2 = stretchLine(getHSC(leftPoints, rightPoints, 0.75, 0.625, points.size() - ((points.size() - 1) / 3)));
-    stroke(BLUE);
-    line(hm2.a.x, hm2.a.y, hm2.b.x, hm2.b.y);
-    Line hm3 = stretchLine(getHSC2(topPoints, bottomPoints, (points.size() / 12) - 1 , (points.size() / 12) - 1, ((points.size() + 2) / 3) - 1, hm1, hm2));
-    stroke(REGION_COLOR);
-    line(hm3.a.x, hm3.a.y, hm3.b.x, hm3.b.y);
+    if (findRadon) {
+      if (!(topLeft.isEmpty() || topRight.isEmpty() || bottomLeft.isEmpty() || bottomRight.isEmpty())) {
+        if (drawRadon(topLeft, topRight, bottomLeft, bottomRight)) {
+          radonKill(topLeft, topRight, bottomLeft, bottomRight);
+          showRadon = true;
+        }
+      }
+      else {
+        findRadon = false;
+        leftPoints.clear();
+        rightPoints.clear();
+        topPoints.clear();
+        bottomPoints.clear();
+      }
+      drawCuts();
+      return;
+    }
+    
+    L = findL();
+    hm1 = stretchLine(getHSC(leftPoints, rightPoints, 0.25, 0.375, ((points.size() + 2) / 3) - 1));
+    hm2 = stretchLine(getHSC(leftPoints, rightPoints, 0.75, 0.625, points.size() - ((points.size() - 1) / 3)));
+    hm3 = stretchLine(getHSC2(topPoints, bottomPoints, (points.size() / 12) - 1 , (points.size() / 12) - 1, ((points.size() + 2) / 3) - 1, hm1, hm2));
+    drawCuts();
     
     println(points.size() + " you happy now?");
-    stroke(DRAW_COLOR);
     
     Point hm3A = hm3.a;
     Point hm3B = hm3.b;
@@ -129,20 +182,9 @@ void draw() {
     if (topLeft.isEmpty() || topRight.isEmpty() || bottomLeft.isEmpty() || bottomRight.isEmpty()) {
       runAlgo = false;
     }
-    
-    while (!(topLeft.isEmpty() || topRight.isEmpty() || bottomLeft.isEmpty() || bottomRight.isEmpty())) {
-      drawLine(new Line((Point)topLeft.get(0), (Point)topRight.get(0)));
-      drawLine(new Line((Point)topLeft.get(0), (Point)bottomLeft.get(0)));
-      drawLine(new Line((Point)topLeft.get(0), (Point)bottomRight.get(0)));
-      drawLine(new Line((Point)topRight.get(0), (Point)bottomLeft.get(0)));
-      drawLine(new Line((Point)topRight.get(0), (Point)bottomRight.get(0)));
-      drawLine(new Line((Point)bottomLeft.get(0), (Point)bottomRight.get(0)));
-      radonKill(topLeft, topRight, bottomLeft, bottomRight);
+    else {
+      findRadon = true;
     }
-    leftPoints.clear();
-    rightPoints.clear();
-    topPoints.clear();
-    bottomPoints.clear();
   }
 }
      
@@ -155,12 +197,15 @@ void mousePressed() {
     stroke(REGION_COLOR);
     fill(REGION_COLOR);
     rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    
     stroke(BACKGROUND_COLOR);
     fill(BACKGROUND_COLOR);
     centerpoint();
+    
     stroke(DRAW_COLOR);
     makeButtons();
     fill(DRAW_COLOR);
+    
     for (int i = 0; i < points.size(); i++) {
       drawPoint((Point)points.get(i));
       for (int j = i+1; j < points.size(); j++) {
@@ -193,6 +238,89 @@ float isInRange(Point a, Point b, int x) {
   return (a.y - b.y) * (x - b.x) / (a.x - b.x) + b.y;
 }
 
+void drawCuts() {
+  stroke(YELLOW);
+  drawLine(L);
+  stroke(RED);
+  drawLine(hm1);
+  stroke(BLUE);
+  drawLine(hm2);
+  stroke(TEAL);
+  drawLine(hm3);
+  stroke(DRAW_COLOR);
+}
+
+boolean drawRadon(ArrayList a, ArrayList b, ArrayList c, ArrayList d) {
+  Point p1 = (Point)a.get(0);
+  Point p2 = (Point)b.get(0);
+  Point p3 = (Point)c.get(0);
+  Point p4 = (Point)d.get(0);
+  
+  if (p1.equals(p2)) {
+    if (a.size() > b.size()) {
+      a.remove(p1);
+    }
+    else {
+      b.remove(p1);
+    }
+    return false;
+  }
+  else if (p1.equals(p3)) {
+    if (a.size() > c.size()) {
+      a.remove(p1);
+    }
+    else {
+      c.remove(p1);
+    }
+    return false;
+  }
+  else if (p1.equals(p4)) {
+    if (a.size() > d.size()) {
+      a.remove(p1);
+    }
+    else {
+      d.remove(p1);
+    }
+    return false;
+  }
+  else if (p2.equals(p3)) {
+    if (b.size() > c.size()) {
+      b.remove(p2);
+    }
+    else {
+      c.remove(p2);
+    }
+    return false;
+  }
+  else if (p2.equals(p4)) {
+    if (b.size() > d.size()) {
+      b.remove(p2);
+    }
+    else {
+      d.remove(p2);
+    }
+    return false;
+  }
+  else if (p3.equals(p4)) {
+    if (c.size() > d.size()) {
+      c.remove(p3);
+    }
+    else {
+      d.remove(p3);
+    }
+    return false;
+  }
+  
+  drawLine(new Line(p1, p2));
+  drawLine(new Line(p1, p3));
+  drawLine(new Line(p1, p4));
+  drawLine(new Line(p2, p3));
+  drawLine(new Line(p2, p4));
+  drawLine(new Line(p3, p4));
+  
+  return true;
+}
+
 void removeHead(ArrayList a, ArrayList b, ArrayList c, ArrayList d) {
   points.remove(a.get(0));
   a.remove(a.get(0));
@@ -218,29 +346,35 @@ void radonKill(ArrayList topLeft, ArrayList topRight, ArrayList bottomLeft, Arra
   int ccwCount = (abd ? 1 : 0) + (bcd ? 1 : 0) + (cad ? 1 : 0);
   if (abc && ccwCount == 2) {
     if (!abd) {
-      points.add(new Line(a, b).getIntersect(new Line(c, d)));
+      Point newPoint = new Line(a, b).getIntersect(new Line(c, d));
+      points.add(newPoint);
       removeHead(topLeft, topRight, bottomLeft, bottomRight);
     }
     if (!bcd) {
-      points.add(new Line(c, b).getIntersect(new Line(a, d)));
+      Point newPoint = new Line(c, b).getIntersect(new Line(a, d));
+      points.add(newPoint);
       removeHead(topLeft, topRight, bottomLeft, bottomRight);
     }
     if (!cad) {
-      points.add(new Line(a, c).getIntersect(new Line(b, d)));
+      Point newPoint = new Line(a, c).getIntersect(new Line(b, d));
+      points.add(newPoint);
       removeHead(topLeft, topRight, bottomLeft, bottomRight);
     }
   }
   else if (!abc && ccwCount == 1) {
     if (abd) {
-      points.add(new Line(a, b).getIntersect(new Line(c, d)));
+      Point newPoint = new Line(a, b).getIntersect(new Line(c, d));
+      points.add(newPoint);
       removeHead(topLeft, topRight, bottomLeft, bottomRight);
     }
     if (bcd) {
-      points.add(new Line(c, b).getIntersect(new Line(a, d)));
+      Point newPoint = new Line(c, b).getIntersect(new Line(a, d));
+      points.add(newPoint);
       removeHead(topLeft, topRight, bottomLeft, bottomRight);
     }
     if (cad) {
-      points.add(new Line(a, c).getIntersect(new Line(b, d)));
+      Point newPoint = new Line(a, c).getIntersect(new Line(b, d));
+      points.add(newPoint);
       removeHead(topLeft, topRight, bottomLeft, bottomRight);
     }
   }
@@ -540,36 +674,6 @@ Line getHSC2(ArrayList leftPoints, ArrayList rightPoints, int leftTarget, int ri
   return maxLine;
 }
 
-class Point {
-  float x,y;
-  
-  Point (float x, float y) {
-    this.x = x;
-    this.y = y;
-  }
-}
-
-class Line {
-  Point a,b;
-  
-  Line (Point a, Point b) {
-    this.a = a;
-    this.b = b;
-  }
-  
-  Point getIntersect(Line otherLine) {
-    return new Point(
-      ((a.x*b.y - a.y*b.x)*(otherLine.a.x - otherLine.b.x) - (a.x - b.x)*(otherLine.a.x*otherLine.b.y - otherLine.a.y*otherLine.b.x)) /
-      ((a.x - b.x)*(otherLine.a.y - otherLine.b.y) - (a.y - b.y)*(otherLine.a.x - otherLine.b.x)),
-      ((a.x*b.y - a.y*b.x)*(otherLine.a.y - otherLine.b.y) - (a.y - b.y)*(otherLine.a.x*otherLine.b.y - otherLine.a.y*otherLine.b.x)) /
-      ((a.x - b.x)*(otherLine.a.y - otherLine.b.y) - (a.y - b.y)*(otherLine.a.x - otherLine.b.x)));
-  }
-  
-  boolean isParallel(Line otherLine) {
-    return (b.y - a.y)*(otherLine.b.x - otherLine.a.x) == (b.x - a.x)*(otherLine.b.y - otherLine.a.y);
-  }
-}
-
 void centerpoint() {
   int min = (points.size() + 2) / 3;
   Line top = new Line(new Point(0, 0), new Point(WINDOW_WIDTH, 0));
@@ -592,7 +696,7 @@ void centerpoint() {
       }
       Point a = (Point)points.get(i);
       Point b = (Point)points.get(j);
-      boolean flipped = count2 < min == a.x < b.x;      
+      boolean flipped = count2 < min == a.x < b.x;
       float y1 = isInRange(a, b, 0);
       float y2 = isInRange(a, b, WINDOW_WIDTH);
       float xymax = xymax(a, b);
