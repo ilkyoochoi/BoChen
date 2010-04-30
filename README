@@ -1,11 +1,21 @@
-What does your program do?
-- Given a set of input points, it finds a subset of the centerpoint region.
+Bo Chen
+Ilkyoo Choi
+4/30/2010
 
-How do I get it to run?
-- There will be a button to execute the algorithm and you just click on it.
+Centerpoints:
 
-What is the input?
-- The input is a finite number of points.
+The project is a program implemented in Processing that demonstrates the linear time algorithm for finding a centerpoint region. The user clicks on areas to create points. Then, there are 5 buttons at the bottom of the screen to do various things. The 'Clear' button clears all the points. The 'Lines' button determines by brute force the centerpoint region of these points and also draws the lines used to calculate the region. The 'None' button does the same as the 'Lines' button, but does not draw the lines. The use of the 'Full' button becomes more clear after the main algorithm is executed. The 'Full' button does the same as the 'None' button for the original set of points given before the main algorithm is executed. That leads us to the final button, 'Algo', which executes the main algorithm. There is a requirement that at least 12 points are present before this works. Once pressed, all user input is ignored until the algorithm runs to completion.
 
-How does the basic algorithm work?
-- Do the algorithm presented in class. It's basically a series of Ham-Sandwich cuts that will produce the centerpoint region.
+We show the algorithm in steps with a one second delay per step. Hence, one step might be to find the 4 ham-sandwich cuts, which we color 4 different colors. Another step is to draw 4 points we are going to remove and their radon point. This is repeated until there are no longer any points found in any of the corner regions after a fresh ham-sandwich division. When the algorithm terminates, the 'Algo' button reads 'Done' and is not reset until 'Clear' is pressed. We can click 'Full' and 'None' to verify that the centerpoint region of the new point set is contained within the centerpoint region of the original set.
+
+Implementation Details:
+We implement brute forcing to find the centerpoint region by simply looking at each pair of points and determining whether the half-space of either side of the line through the two points can be eliminated from the centerpoint region. Hence, we first color the whole screen as part of the region, and then take away portions as we go.
+
+Our ham-sandwich cuts, while in theory can be linear in time, are actually being brute-forced in our implementation. Since the purpose of the program was to explain the algorithm, it wasn't deemed necessary to also implement something as complicated as linear time ham-sandwich cuts. Hence, we brute force similarly to the way we got the centerpoint region: we look at the line through every pair of points and evaluate whether or not that is a good cut. One thing we do though, is after brute-forcing, we choose the cut the has the 'best' slope for our purposes. Hence, we commonly have very nice looking cuts.
+
+TODO List:
+-The code could use significant cleanup. It should probably be split into multiple files and it also needs more comments.
+-The UI could use some revising, maybe allowing for dragging/removing points. The buttons also could use revising.
+-The program is starting to run a little slow. There are some optimizations that could make it faster.
+-One simple optimization would be to not use bubble sort to sort points. In practice, it's probably not too bad since our scale is small, but it is a tad silly.
+-Create a feature that lets people view both the full centerpoint region and the reduced one from the algorithm at the same time.
