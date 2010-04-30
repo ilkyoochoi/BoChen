@@ -1,3 +1,15 @@
+/**
+ *  Centerpoint
+ *  
+ *  This program demonstrates the linear-time algorithm for finding a centerpoint region.
+ *
+ *  4/30/2010
+ *
+ *  @author Bo Chen
+ *  @author Ilkyoo Choi
+ */
+
+
 ArrayList points;
 ArrayList lines;
 ArrayList leftPoints;
@@ -14,7 +26,6 @@ boolean runAlgo = false;
 boolean findRadon = false;
 boolean showRadon = false;
 boolean addPoints = true;
-boolean drawLines = true;
 
 String radonText = "Algo";
 Line L;
@@ -32,9 +43,11 @@ final int RADON_X = WINDOW_WIDTH - BUTTON_WIDTH;
 final int RADON_Y = WINDOW_HEIGHT - BUTTON_HEIGHT;
 final int RESET_X = 0;
 final int RESET_Y = WINDOW_HEIGHT - BUTTON_HEIGHT;
-final int LINE_X = (WINDOW_WIDTH / 2) - BUTTON_WIDTH;
+final int LINE_X = (WINDOW_WIDTH - 3 * BUTTON_WIDTH) / 2;
 final int LINE_Y = WINDOW_HEIGHT - BUTTON_HEIGHT;
-final int OLD_X = WINDOW_WIDTH / 2;
+final int NOLINE_X = (WINDOW_WIDTH - BUTTON_WIDTH) / 2;
+final int NOLINE_Y = WINDOW_HEIGHT - BUTTON_HEIGHT;
+final int OLD_X = (WINDOW_WIDTH + BUTTON_WIDTH) / 2;
 final int OLD_Y = WINDOW_HEIGHT - BUTTON_HEIGHT;
 final int MIN_POINTS = 12;
 final int BACKGROUND_COLOR = 255;
@@ -46,6 +59,7 @@ final int RED = color(255, 0, 0);
 final int BLUE = color(0, 0, 255);
 final int TEAL = color(0, 150, 150);
 final float EPSILON = 3;
+final int MAX_INTEGER_YOU_CAN_PASS_TO_QUAD = 2147483583;
 
 class Point {
   float x,y;
@@ -124,12 +138,14 @@ void makeButtons() {
   rect(RESET_X, RESET_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
   rect(RADON_X, RADON_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
   rect(LINE_X, LINE_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
+  rect(NOLINE_X, NOLINE_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
   rect(OLD_X, OLD_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
   
   fill(POINT_COLOR);
   text("Clear", RESET_X + 3, RESET_Y + (3 * BUTTON_HEIGHT / 4));
   text(radonText, RADON_X + 5, RADON_Y + (3 * BUTTON_HEIGHT / 4));
   text("Lines", LINE_X + 3, LINE_Y + (3 * BUTTON_HEIGHT / 4));
+  text("None", NOLINE_X + 4, NOLINE_Y + (3 * BUTTON_HEIGHT / 4));
   text("Full", OLD_X + 8, OLD_Y + (3 * BUTTON_HEIGHT / 4));
 }
 
@@ -194,8 +210,6 @@ void draw() {
     drawCuts();
     makeButtons();
     
-    println(points.size() + " you happy now?");
-    
     Point hm3A = hm3.a;
     Point hm3B = hm3.b;
     if (hm3.a.y > hm3.b.y) {
@@ -207,15 +221,11 @@ void draw() {
         rightPoints.remove(i--);
       }
     }
-      
-    println(leftPoints.size() + " " + rightPoints.size() + " " + topPoints.size() + " " + bottomPoints.size());
     
     topLeft = getIntersection(leftPoints, topPoints);
     topRight = getIntersection(rightPoints, topPoints);
     bottomLeft = getIntersection(leftPoints, bottomPoints);
     bottomRight = getIntersection(rightPoints, bottomPoints);
-    
-    println(topLeft.size()+" "+topRight.size()+" "+bottomLeft.size()+" "+bottomRight.size());
     
     if (topLeft.isEmpty() || topRight.isEmpty() || bottomLeft.isEmpty() || bottomRight.isEmpty()) {
       radonText = "Done";
@@ -251,14 +261,28 @@ void mousePressed() {
     for (int i = 0; i < points.size(); i++) {
       drawPoint((Point)points.get(i));
         for (int j = i+1; j < points.size(); j++) {
-        if(drawLines){
           stroke(LINE_COLOR);
           drawLine(new Line((Point)points.get(i), (Point)points.get(j)));
           stroke(POINT_COLOR);
-        }
       }
     }
-    drawLines = !drawLines;
+  }
+  else if (mouseX > NOLINE_X && mouseX < NOLINE_X + BUTTON_WIDTH && mouseY > NOLINE_Y && mouseY < NOLINE_Y + BUTTON_HEIGHT) {
+    stroke(REGION_COLOR);
+    fill(REGION_COLOR);
+    rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    
+    stroke(BACKGROUND_COLOR);
+    fill(BACKGROUND_COLOR);
+    centerpoint(points);
+    
+    stroke(POINT_COLOR);
+    makeButtons();
+    fill(POINT_COLOR);
+    
+    for (int i = 0; i < points.size(); i++) {
+      drawPoint((Point)points.get(i));
+    }
   }
   else if (mouseX > OLD_X && mouseX < OLD_X + BUTTON_WIDTH && mouseY > OLD_Y && mouseY < OLD_Y + BUTTON_HEIGHT) {
     ArrayList oldList = oldPoints.isEmpty() ? points : oldPoints;
@@ -296,18 +320,6 @@ void mousePressed() {
       drawPoint(p);
     }
   }
-}
-
-float xymin(Point a, Point b) {
-  return (-b.y)*(a.x - b.x) / (a.y - b.y) + b.x;
-}
-
-float xymax(Point a, Point b) {
-  return (WINDOW_HEIGHT - b.y) * (a.x - b.x) / (a.y - b.y) + b.x;
-}
-
-float isInRange(Point a, Point b, int x) {
-  return (a.y - b.y) * (x - b.x) / (a.x - b.x) + b.y;
 }
 
 void drawCuts() {
@@ -483,7 +495,7 @@ Line stretchLine(Line shortLine) {
   }
   
   Line top = new Line(new Point(0, 0), new Point(WINDOW_WIDTH, 0));
-  Line bottom = new Line(new Point(0, WINDOW_HEIGHT), new Point(WINDOW_WIDTH, WINDOW_HEIGHT));  
+  Line bottom = new Line(new Point(0, WINDOW_HEIGHT), new Point(WINDOW_WIDTH, WINDOW_HEIGHT));
   return new Line(top.getIntersect(shortLine), bottom.getIntersect(shortLine));
 }
 
@@ -598,7 +610,6 @@ Line getHSC(ArrayList leftPoints, ArrayList rightPoints, float leftRatio, float 
           leftCount++;
         }
       }
-      //println ("Target is " + leftTarget + " and left count is " + leftCount + " a " + leftPoints.contains(a) + " b " + leftPoints.contains(b));
       if (abs(leftCount - leftTarget) > 1) {
         if (leftTarget - leftCount == 2 && (leftPoints.contains(a) || leftPoints.contains(b))) {
           if (leftPoints.contains(a)) {
@@ -624,7 +635,6 @@ Line getHSC(ArrayList leftPoints, ArrayList rightPoints, float leftRatio, float 
           rightCount++;
         }
       }
-      //println ("Target is " + rightTarget + " and right count is " + rightCount + " a " + rightPoints.contains(a) + " b " + rightPoints.contains(b));
       if (abs(rightCount - rightTarget) < 2 && topTarget == leftCount + rightCount) {
         a = new Point(a.x, shiftA ? a.y + EPSILON : a.y - EPSILON);
         b = new Point(b.x, shiftB ? b.y + EPSILON : b.y - EPSILON);
@@ -644,7 +654,6 @@ Line getHSC(ArrayList leftPoints, ArrayList rightPoints, float leftRatio, float 
   }
   
   if (candidates.isEmpty()) {
-    println("OH NO THE HAM SANDWICH CUT BROKE!!!");
     return null;
   }
   
@@ -664,7 +673,7 @@ Line getHSC(ArrayList leftPoints, ArrayList rightPoints, float leftRatio, float 
   return maxLine;
 }
 
-Line getHSC2(ArrayList leftPoints, ArrayList rightPoints, int leftTarget, int rightTarget, int topTarget, Line hm1, Line hm2) {
+Line getHSC2(ArrayList topPoints, ArrayList bottomPoints, int topTarget, int bottomTarget, int rightTarget, Line hm1, Line hm2) {
   ArrayList candidates = new ArrayList();
   loadTopBottom(hm1, hm2);
   for (int i = 0; i < points.size(); i++) {
@@ -679,58 +688,56 @@ Line getHSC2(ArrayList leftPoints, ArrayList rightPoints, int leftTarget, int ri
       }
       boolean shiftA = false;
       boolean shiftB = false;
-      int leftCount = 0;
-      for (int k = 0; k < leftPoints.size(); k++) {
-        if (isCCW(a, b, (Point)leftPoints.get(k))) {
-          leftCount++;
+      int topCount = 0;
+      for (int k = 0; k < topPoints.size(); k++) {
+        if (isCCW(a, b, (Point)topPoints.get(k))) {
+          topCount++;
         }
       }
-      //println ("Target is " + leftTarget + " and left count is " + leftCount + " a " + leftPoints.contains(a) + " b " + leftPoints.contains(b));
-      if (leftCount < leftTarget) {
-        if (leftTarget - leftCount == 1 && (leftPoints.contains(a) || leftPoints.contains(b))) {
-          if (leftPoints.contains(a)) {
+      if (topCount < topTarget) {
+        if (topTarget - topCount == 1 && (topPoints.contains(a) || topPoints.contains(b))) {
+          if (topPoints.contains(a)) {
             shiftA = true;
           }
           else {
             shiftB = true;
           }
-          leftCount++;
+          topCount++;
         }
-        else if (leftTarget - leftCount == 2 && leftPoints.contains(a) && leftPoints.contains(b)) {
+        else if (topTarget - topCount == 2 && topPoints.contains(a) && topPoints.contains(b)) {
           shiftA = true;
           shiftB = true;
-          leftCount += 2;
+          topCount += 2;
         }
         else {
           continue;
         }
       }
-      int rightCount = 0;
-      for (int k = 0; k < rightPoints.size(); k++) {
-        if (isCCW(a, b, (Point)rightPoints.get(k))) {
-          rightCount++;
+      int bottomCount = 0;
+      for (int k = 0; k < bottomPoints.size(); k++) {
+        if (isCCW(a, b, (Point)bottomPoints.get(k))) {
+          bottomCount++;
         }
       }
       
       int midCount = 0;
       for (int k = 0; k < points.size(); k++) {
         Point aPoint = (Point)points.get(k);
-        if (!leftPoints.contains(aPoint) && !rightPoints.contains(aPoint) && isCCW(a, b, aPoint)) {
+        if (!topPoints.contains(aPoint) && !bottomPoints.contains(aPoint) && isCCW(a, b, aPoint)) {
           midCount++;
         }
       }
-      //println ("Target is " + rightTarget + " and right count is " + rightCount + " a " + rightPoints.contains(a) + " b " + rightPoints.contains(b));
-      if (rightCount >= rightTarget && topTarget >= leftCount + rightCount + midCount) {
+      if (bottomCount >= bottomTarget && rightTarget >= topCount + bottomCount + midCount) {
         a = new Point(shiftA ? a.x - EPSILON : a.x + EPSILON, a.y);
         b = new Point(shiftB ? b.x - EPSILON : b.x + EPSILON, b.y);
         candidates.add(new Line(a, b));
       }
-      else if (rightTarget - rightCount == 1 && topTarget >= leftCount + rightCount + midCount + 1 && (rightPoints.contains(a) || rightPoints.contains(b))) {
-        a = new Point(rightPoints.contains(a) || shiftA ? a.x - EPSILON : a.x + EPSILON, a.y);
-        b = new Point(rightPoints.contains(b) || shiftB ? b.x - EPSILON : b.x + EPSILON, b.y);
+      else if (bottomTarget - bottomCount == 1 && rightTarget >= topCount + bottomCount + midCount + 1 && (bottomPoints.contains(a) || bottomPoints.contains(b))) {
+        a = new Point(bottomPoints.contains(a) || shiftA ? a.x - EPSILON : a.x + EPSILON, a.y);
+        b = new Point(bottomPoints.contains(b) || shiftB ? b.x - EPSILON : b.x + EPSILON, b.y);
         candidates.add(new Line(a, b));
       }
-      else if (rightTarget - rightCount == 2 && topTarget >= leftCount + rightCount + midCount + 2 && rightPoints.contains(a) && rightPoints.contains(b)) {
+      else if (bottomTarget - bottomCount == 2 && rightTarget >= topCount + bottomCount + midCount + 2 && bottomPoints.contains(a) && bottomPoints.contains(b)) {
         a = new Point(a.x - EPSILON, a.y);
         b = new Point(b.x - EPSILON, a.y);
         candidates.add(new Line(a, b));
@@ -739,7 +746,6 @@ Line getHSC2(ArrayList leftPoints, ArrayList rightPoints, int leftTarget, int ri
   }
   
   if (candidates.isEmpty()) {
-    println("OH NO THE HAM SANDWICH CUT2 BROKE!!!");
     return null;
   }
   
@@ -761,31 +767,33 @@ Line getHSC2(ArrayList leftPoints, ArrayList rightPoints, int leftTarget, int ri
 
 void centerpoint(ArrayList points) {
   int min = (points.size() + 2) / 3;
-  Line top = new Line(new Point(0, 0), new Point(WINDOW_WIDTH, 0));
-  Line bottom = new Line(new Point(0, WINDOW_HEIGHT), new Point(WINDOW_WIDTH, WINDOW_HEIGHT));
-  Line left = new Line(new Point(0, 0), new Point(0, WINDOW_HEIGHT));
-  Line right = new Line(new Point(WINDOW_WIDTH, 0), new Point(WINDOW_WIDTH, WINDOW_HEIGHT));
   for (int i = 0; i < points.size(); i++) {
     for (int j = i+1; j < points.size(); j++) {
       int count1 = 0;
       int count2 = 0;
+      Point a = (Point)points.get(i);
+      Point b = (Point)points.get(j);
+      if (a.y < b.y) {
+        Point temp = a;
+        a = b;
+        b = temp;
+      }
       for (int k = 0; k < points.size(); k++) {
-        if (isCCW((Point)points.get(i), (Point)points.get(j), (Point)points.get(k))) {
+        if (isCCW(a, b, (Point)points.get(k))) {
           count1++;
         }
-        else if (isCCW((Point)points.get(j), (Point)points.get(i), (Point)points.get(k))) {
+        else if (isCCW(b, a, (Point)points.get(k))) {
           count2++;
         }
       }
-      Point a = (Point)points.get(i);
-      Point b = (Point)points.get(j);
-      boolean flipped = count2 < min == a.x < b.x;
-      float y1 = isInRange(a, b, 0);
-      float y2 = isInRange(a, b, WINDOW_WIDTH);
-      float xymax = xymax(a, b);
-      float xymin = xymin(a, b);
       
-      //println("Point a is " + a.x + ", " + a.y + " and point b is " + b.x + ", " + b.y + " and y1 is " + y1 + " and y2 is " + y2 + " and count1 is " + count1 + " and count2 is " + count2);
+      Line halfSpaceLine = stretchLine(new Line(a, b));
+      a = halfSpaceLine.a;
+      b = halfSpaceLine.b;
+      if (a.y < b.y) {
+        b = a;
+        a = halfSpaceLine.b;
+      }
       
       // Both half-spaces are acceptable, so continue iterating.
       if (count1 >= min && count2 >= min) {
@@ -798,81 +806,23 @@ void centerpoint(ArrayList points) {
         return;
       }
       
-      // Dealing with all the cases for shaving off one half-space.
-      if (y1 >= 0 && y2 >= 0 && y1 <= WINDOW_HEIGHT && y2 <= WINDOW_HEIGHT) {
-        if (flipped) {
-          quad(0, y1, 0, WINDOW_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH, y2);
+      boolean flipped = count2 < min;
+      
+      if (!flipped) {
+        if (a.y == b.y) {
+          rect(0, 0, WINDOW_WIDTH, a.y);
         }
         else {
-          quad(0, y1, 0, 0, WINDOW_WIDTH, 0, WINDOW_WIDTH, y2);
-        }
-      }
-      else if (y1 >= 0 && y1 <= WINDOW_HEIGHT) {
-        if (y2 > WINDOW_HEIGHT) {
-          if (flipped) {
-            triangle(0, y1, 0, WINDOW_HEIGHT, xymax, WINDOW_HEIGHT);
-          }
-          else {
-            quad(0, y1, 0, 0, WINDOW_WIDTH, 0, xymax, WINDOW_HEIGHT);
-            triangle(xymax, WINDOW_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH, 0);
-          }
-        }
-        else {
-          if (flipped) {
-            quad(0, y1, 0, WINDOW_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH, 0);
-            triangle(0, y1, WINDOW_WIDTH, 0, xymin, 0);
-          }
-          else {
-            triangle(0, y1, 0, 0, xymin, 0);
-          }
-        }
-      }
-      else if (y1 > WINDOW_HEIGHT){
-        if (y2 >= 0 && y2 <= WINDOW_HEIGHT) {
-          if (flipped) {
-            triangle(xymax, WINDOW_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH, y2);
-          }
-          else {
-            quad(0, WINDOW_HEIGHT, 0, 0, WINDOW_WIDTH, 0, xymax, WINDOW_HEIGHT);
-            triangle(xymax, WINDOW_HEIGHT, WINDOW_WIDTH, 0, WINDOW_WIDTH, y2);
-          }
-        }
-        else if (y2 < 0) {
-          if (flipped) {
-            quad(WINDOW_WIDTH, 0, WINDOW_WIDTH, WINDOW_HEIGHT, xymax, WINDOW_HEIGHT, xymin, 0);
-          }
-          else {
-            quad(0, WINDOW_HEIGHT, 0, 0, xymin, 0, xymax, WINDOW_HEIGHT);
-          }
-        }
-        else {
-          println("DANGER DANGER!!!1");
-        }
-      }
-      else if (y1 < 0) {
-        if (y2 >= 0 && y2 <= WINDOW_HEIGHT) {
-          if (flipped) {
-            quad(WINDOW_WIDTH, y2, WINDOW_WIDTH, WINDOW_HEIGHT, 0, WINDOW_HEIGHT, 0, 0);
-            triangle(0, 0, WINDOW_WIDTH, y2, xymin, 0);
-          }
-          else {
-            triangle(WINDOW_WIDTH, y2, WINDOW_WIDTH, 0, xymin, 0);
-          }
-        }
-        else if (y2 > WINDOW_HEIGHT) {
-          if (flipped) {
-            quad(0, 0, 0, WINDOW_HEIGHT, xymax, WINDOW_HEIGHT, xymin, 0);
-          }
-          else {
-            quad(WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_WIDTH, 0, xymin, 0, xymax, WINDOW_HEIGHT);
-          }
-        }
-        else {
-          println("DANGER DANGER!!!2");
+          quad(Float.MIN_VALUE, 0, Float.MIN_VALUE, WINDOW_HEIGHT, a.x, a.y, b.x, b.y);
         }
       }
       else {
-        println("DANGER DANGER!!!3");
+        if (a.y == b.y) {
+         rect(0, a.y, WINDOW_WIDTH, WINDOW_HEIGHT);
+        }
+        else {
+          quad(MAX_INTEGER_YOU_CAN_PASS_TO_QUAD, 0, MAX_INTEGER_YOU_CAN_PASS_TO_QUAD, WINDOW_HEIGHT, a.x, a.y, b.x, b.y);
+        }
       }
     }
   }
