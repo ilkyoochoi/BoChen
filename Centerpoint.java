@@ -827,21 +827,19 @@ public void centerpoint(ArrayList points) {
       
       boolean flipped = count2 < min;
       
-      if (!flipped) {
-        if (a.y == b.y) {
-          rect(0, 0, WINDOW_WIDTH, a.y);
-        }
-        else {
-          quad(Float.MIN_VALUE, 0, Float.MIN_VALUE, WINDOW_HEIGHT, a.x, a.y, b.x, b.y);
-        }
-      }
-      else {
-        if (a.y == b.y) {
+      if (a.y == b.y) {
+        if (a.x < b.x == flipped) {
          rect(0, a.y, WINDOW_WIDTH, WINDOW_HEIGHT);
         }
         else {
-          quad(MAX_INTEGER_YOU_CAN_PASS_TO_QUAD, 0, MAX_INTEGER_YOU_CAN_PASS_TO_QUAD, WINDOW_HEIGHT, a.x, a.y, b.x, b.y);
+          rect(0, 0, WINDOW_WIDTH, a.y);
         }
+      }
+      else if (!flipped) {
+        quad(Float.MIN_VALUE, 0, Float.MIN_VALUE, WINDOW_HEIGHT, a.x, a.y, b.x, b.y);
+      }
+      else {
+        quad(MAX_INTEGER_YOU_CAN_PASS_TO_QUAD, 0, MAX_INTEGER_YOU_CAN_PASS_TO_QUAD, WINDOW_HEIGHT, a.x, a.y, b.x, b.y);
       }
     }
   }
