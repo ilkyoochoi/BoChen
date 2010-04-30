@@ -30,6 +30,11 @@
   </head>
 
   <body>
+	<br>
+	<br>
+	WELCOME TO CENTERPOINTS! by ILKYOO CHOI & BO CHEN
+	<br>
+	<br>
     <div id="content">
       <div id="Centerpoint_container">
 
@@ -111,11 +116,28 @@
 	</div> </noscript>
 
       </div>
-      
-      <p>
-	ddd
-      </p>
-      
+
+	Applet explanation:<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	- NOTE: AT LEAST 12 POINTS REQUIRED TO RUN ALGO.<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	- Lines: Find the centerpoint region of the current point set on the screen by brute force.<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+		Draw every pair of lines possible and color the centerpoint region green.<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	- None: Find the centerpoint region of the current point set on the screen by brute force.<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+		Do not draw every pair of lines and color the centerpoint region green.<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	- Full: Find the centerpoint region of the current point set on the screen by brute force.<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+		Do not draw every pair of lines and color the centerpoint region red.<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	- Algo: Find a subset of the centerpoint region of the current point set on the screen by the algorithm explained below.<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+		Stop when there are no points in one of the four corner sets.<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	- Clear: clears the screen and start over.<br>
       <p>
 	Source code: <a href="Centerpoint.pde">Centerpoint</a> 
       </p>
@@ -123,6 +145,66 @@
       <p>
 	Built with <a href="http://processing.org" title="Processing.org">Processing</a>
       </p>
+      
+      <p>
+	Algorithm:<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+	We implemented the algorithm in the paper "Computing a Centerpoint of a Finite Planar Set of Points in Linear Time" by Shreesh Jadhav.<br>
+	<br>
+	Goal:<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+	The goal of the algorithm is to find at least one centerpoint.<br>
+	<br>
+	Method:<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	First we find four cuts, L(eft), U(p), D(own), R(ight), according to the following rules<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	L cut: must have exactly ceiling(n/3)-1 points on the left<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	U cut: must have exactly ceiling(n/3)-1 points above the cut<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		ensure in the intersection of L and U there are floor(n/12)-1 points<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	D cut: must have exactly ceiling(n/3)-1 points below the cut<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		ensure in the intersection of L and D there are floor(n/12)-1 points<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	R cut: must have less than ceiling(n/3) points to the right<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		ensure in the intersection of R and U there at least floor(n/12)-1 points<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+		ensure in the intersection of R and D there at least floor(n/12)-1 points<br>
+	<br>
+	Now that we have the four cuts, we attempt to prune points.<br>
+	We grab four distinct points, one from each set UR, UL, DR, DL.<br>
+	If the four points are in convex position, then we add the radon point of them and remove the four points.<br>
+	If the four points are not in convex position, we keep the point inside the triangle, and remove the three vertexes of the triangle.<br>
+	We repeat this process until one of the sets UR, UL, DR, DL is empty.<br>
+	If one of the sets are empty, then we find new cuts.<br>
+	The algorithm terminates once the new cuts already have an empty set of UR, UL, DR, DL.<br>
+	Ocne the algorithm terminates, use a brute force algorithm to determine the centerpoint region.<br>
+	<br>
+	Runtime:<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+	T(n)=T(3n/4)+O(n) which is T(n)=O(n).<br>
+	<br>
+	Note: <br>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+	The region found by this algorithm is smaller than the maximum centerpoint region.<br>
+      </p>
+      
     </div>
   </body>
 </html>
