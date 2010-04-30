@@ -14,8 +14,9 @@ boolean runAlgo = false;
 boolean findRadon = false;
 boolean showRadon = false;
 boolean addPoints = true;
+boolean drawLines = true;
 
-String radonText = "Trim";
+String radonText = "Algo";
 Line L;
 Line hm1;
 Line hm2;
@@ -24,25 +25,26 @@ Line hm3;
 final int DIAMETER = 8;
 final int WINDOW_WIDTH = 600;
 final int WINDOW_HEIGHT = 600;
+final int TEXT_HEIGHT = 12;
 final int BUTTON_WIDTH = 36;
 final int BUTTON_HEIGHT = 30;
 final int RADON_X = WINDOW_WIDTH - BUTTON_WIDTH;
 final int RADON_Y = WINDOW_HEIGHT - BUTTON_HEIGHT;
 final int RESET_X = 0;
 final int RESET_Y = WINDOW_HEIGHT - BUTTON_HEIGHT;
-final int LINE_X = (WINDOW_WIDTH - 3 * BUTTON_WIDTH) / 2;
+final int LINE_X = (WINDOW_WIDTH / 2) - BUTTON_WIDTH;
 final int LINE_Y = WINDOW_HEIGHT - BUTTON_HEIGHT;
-final int NOLINE_X = (WINDOW_WIDTH - BUTTON_WIDTH) / 2;
-final int NOLINE_Y = WINDOW_HEIGHT - BUTTON_HEIGHT;
-final int OLD_X = (WINDOW_WIDTH + BUTTON_WIDTH) / 2;
+final int OLD_X = WINDOW_WIDTH / 2;
 final int OLD_Y = WINDOW_HEIGHT - BUTTON_HEIGHT;
+final int MIN_POINTS = 12;
 final int BACKGROUND_COLOR = 255;
-final int DRAW_COLOR = 0;
+final int POINT_COLOR = 0;
+final int LINE_COLOR = 150;
 final int REGION_COLOR = color(0, 255, 0);
+final int PURPLE = color(150, 0, 150);
 final int RED = color(255, 0, 0);
 final int BLUE = color(0, 0, 255);
-final int YELLOW = color(255, 255, 0);
-final int TEAL = color(0, 255, 255);
+final int TEAL = color(0, 150, 150);
 final float EPSILON = 3;
 
 class Point {
@@ -76,18 +78,23 @@ class Line {
 }
 
 void setup() {
-  size(600, 600); // Export seems to only like magic numbers here.
-  stroke(DRAW_COLOR);
-  background(BACKGROUND_COLOR);
-  makeButtons();
-  fill(DRAW_COLOR);
   points = new ArrayList();
   lines = new ArrayList();
   leftPoints = new ArrayList();
   rightPoints = new ArrayList();
   topPoints = new ArrayList();
   bottomPoints = new ArrayList();
+  topLeft = new ArrayList();
+  topRight = new ArrayList();
+  bottomLeft = new ArrayList();
+  bottomRight = new ArrayList();
   oldPoints = new ArrayList();
+  
+  size(600, 600); // Export seems to only like magic numbers here.
+  smooth();
+  stroke(POINT_COLOR);
+  background(BACKGROUND_COLOR);
+  makeButtons();
 }
 
 void reset() {
@@ -97,69 +104,76 @@ void reset() {
   rightPoints.clear();
   topPoints.clear();
   bottomPoints.clear();
-  radonText = "Trim";
-  addPoints = true;
+  topLeft.clear();
+  topRight.clear();
+  bottomLeft.clear();
+  bottomRight.clear();
   oldPoints.clear();
+  radonText = "Algo";
+  addPoints = true;
   
-  stroke(BACKGROUND_COLOR);
   fill(BACKGROUND_COLOR);
   rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-  stroke(DRAW_COLOR);
+  stroke(POINT_COLOR);
   makeButtons();
-  fill(DRAW_COLOR);
 }
 
 void makeButtons() {
+  fill(BACKGROUND_COLOR);
+  rect(0, WINDOW_HEIGHT - BUTTON_HEIGHT, WINDOW_WIDTH, BUTTON_HEIGHT);
   rect(RESET_X, RESET_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
   rect(RADON_X, RADON_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
   rect(LINE_X, LINE_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
-  rect(NOLINE_X, NOLINE_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
   rect(OLD_X, OLD_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
   
-  fill(DRAW_COLOR);
+  fill(POINT_COLOR);
   text("Clear", RESET_X + 3, RESET_Y + (3 * BUTTON_HEIGHT / 4));
   text(radonText, RADON_X + 5, RADON_Y + (3 * BUTTON_HEIGHT / 4));
   text("Lines", LINE_X + 3, LINE_Y + (3 * BUTTON_HEIGHT / 4));
-  text("None", NOLINE_X + 4, NOLINE_Y + (3 * BUTTON_HEIGHT / 4));
-  text("Old", OLD_X + 8, OLD_Y + (3 * BUTTON_HEIGHT / 4));
-  fill(BACKGROUND_COLOR);
+  text("Full", OLD_X + 8, OLD_Y + (3 * BUTTON_HEIGHT / 4));
 }
-		  
+
 void draw() {
-  if (points.size() < 10) {
+  display("Welcome to centerpoints!", "Points: " + points.size() + ", Top-Left Points: " + topLeft.size() + ", Top-Right Points: "
+    + topRight.size() + ", Bottom-Left Points: " + bottomLeft.size() + ", Bottom-Right Points: " + bottomRight.size());
+  
+  if (points.size() < MIN_POINTS) {
     runAlgo = false;
   }
   
   if (runAlgo) {
     stroke(BACKGROUND_COLOR);
     fill(BACKGROUND_COLOR);
-    rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-    stroke(DRAW_COLOR);
-    makeButtons();
-    fill(DRAW_COLOR);
+    rect(0, 3 * TEXT_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT);
+    stroke(POINT_COLOR);
+    fill(POINT_COLOR);
     for (int i = 0; i < points.size(); i++) {
       drawPoint((Point)points.get(i));
     }
-      
+    
     delay(1000);
     
     if (radonText.equals("Done")) {
       runAlgo = false;
       drawCuts();
+      makeButtons();
       return;
     }
     if (showRadon) {
       showRadon = false;
       drawCuts();
+      makeButtons();
       return;
     }
     
     if (findRadon) {
       if (!(topLeft.isEmpty() || topRight.isEmpty() || bottomLeft.isEmpty() || bottomRight.isEmpty())) {
+        stroke(LINE_COLOR);
         if (drawRadon(topLeft, topRight, bottomLeft, bottomRight)) {
           radonKill(topLeft, topRight, bottomLeft, bottomRight);
           showRadon = true;
         }
+        stroke(POINT_COLOR);
       }
       else {
         findRadon = false;
@@ -169,6 +183,7 @@ void draw() {
         bottomPoints.clear();
       }
       drawCuts();
+      makeButtons();
       return;
     }
     
@@ -177,6 +192,7 @@ void draw() {
     hm2 = stretchLine(getHSC(leftPoints, rightPoints, 0.75, 0.625, points.size() - ((points.size() - 1) / 3)));
     hm3 = stretchLine(getHSC2(topPoints, bottomPoints, (points.size() / 12) - 1 , (points.size() / 12) - 1, ((points.size() + 2) / 3) - 1, hm1, hm2));
     drawCuts();
+    makeButtons();
     
     println(points.size() + " you happy now?");
     
@@ -210,7 +226,11 @@ void draw() {
   }
 }
      
-void mousePressed() {
+void mousePressed() {  
+  if (mouseY < 3 * TEXT_HEIGHT) {
+    return;
+  }
+  
   if (runAlgo) {
     return;
   }
@@ -224,33 +244,21 @@ void mousePressed() {
     fill(BACKGROUND_COLOR);
     centerpoint(points);
     
-    stroke(DRAW_COLOR);
+    stroke(POINT_COLOR);
     makeButtons();
-    fill(DRAW_COLOR);
+    fill(POINT_COLOR);
     
     for (int i = 0; i < points.size(); i++) {
       drawPoint((Point)points.get(i));
-      for (int j = i+1; j < points.size(); j++) {
-        drawLine(new Line((Point)points.get(i), (Point)points.get(j)));
+        for (int j = i+1; j < points.size(); j++) {
+        if(drawLines){
+          stroke(LINE_COLOR);
+          drawLine(new Line((Point)points.get(i), (Point)points.get(j)));
+          stroke(POINT_COLOR);
+        }
       }
     }
-  }
-  else if (mouseX > NOLINE_X && mouseX < NOLINE_X + BUTTON_WIDTH && mouseY > NOLINE_Y && mouseY < NOLINE_Y + BUTTON_HEIGHT) {
-    stroke(REGION_COLOR);
-    fill(REGION_COLOR);
-    rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-    
-    stroke(BACKGROUND_COLOR);
-    fill(BACKGROUND_COLOR);
-    centerpoint(points);
-    
-    stroke(DRAW_COLOR);
-    makeButtons();
-    fill(DRAW_COLOR);
-    
-    for (int i = 0; i < points.size(); i++) {
-      drawPoint((Point)points.get(i));
-    }
+    drawLines = !drawLines;
   }
   else if (mouseX > OLD_X && mouseX < OLD_X + BUTTON_WIDTH && mouseY > OLD_Y && mouseY < OLD_Y + BUTTON_HEIGHT) {
     ArrayList oldList = oldPoints.isEmpty() ? points : oldPoints;
@@ -263,9 +271,9 @@ void mousePressed() {
     fill(BACKGROUND_COLOR);
     centerpoint(oldList);
     
-    stroke(DRAW_COLOR);
+    stroke(POINT_COLOR);
     makeButtons();
-    fill(DRAW_COLOR);
+    fill(POINT_COLOR);
     
     for (int i = 0; i < points.size(); i++) {
       drawPoint((Point)points.get(i));
@@ -275,11 +283,13 @@ void mousePressed() {
     reset();
   }
   else if (mouseX > RADON_X && mouseX < RADON_X + BUTTON_WIDTH && mouseY > RADON_Y && mouseY < RADON_Y + BUTTON_HEIGHT) {
-    runAlgo = true;
-    addPoints = false;
-    oldPoints.addAll(points);
+    if (points.size() >= MIN_POINTS) {
+      runAlgo = true;
+      addPoints = false;
+      oldPoints.addAll(points);
+    }
   }
-  else {
+  else if (mouseY < WINDOW_HEIGHT - BUTTON_HEIGHT) {
     if (addPoints) {
       Point p = new Point(mouseX, mouseY);
       points.add(p);
@@ -301,15 +311,15 @@ float isInRange(Point a, Point b, int x) {
 }
 
 void drawCuts() {
-  stroke(YELLOW);
-  drawLine(L);
-  stroke(RED);
-  drawLine(hm1);
   stroke(BLUE);
+  drawLine(L);
+  stroke(PURPLE);
+  drawLine(hm1);
+  stroke(RED);
   drawLine(hm2);
   stroke(TEAL);
   drawLine(hm3);
-  stroke(DRAW_COLOR);
+  stroke(POINT_COLOR);
 }
 
 boolean drawRadon(ArrayList a, ArrayList b, ArrayList c, ArrayList d) {
@@ -475,6 +485,16 @@ Line stretchLine(Line shortLine) {
   Line top = new Line(new Point(0, 0), new Point(WINDOW_WIDTH, 0));
   Line bottom = new Line(new Point(0, WINDOW_HEIGHT), new Point(WINDOW_WIDTH, WINDOW_HEIGHT));  
   return new Line(top.getIntersect(shortLine), bottom.getIntersect(shortLine));
+}
+
+void display(String line1, String line2) {
+  fill(BACKGROUND_COLOR);
+  stroke(BACKGROUND_COLOR);
+  rect(0, 0, WINDOW_WIDTH, 3 * TEXT_HEIGHT);
+  stroke(POINT_COLOR);
+  fill(POINT_COLOR);
+  text(line1, 0, TEXT_HEIGHT);
+  text(line2, 0, 2 * TEXT_HEIGHT);
 }
 
 void drawPoint(Point p) {
