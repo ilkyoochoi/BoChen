@@ -169,7 +169,7 @@ public void makeButtons() {
 }
 
 public void draw() {
-  display("Welcome to centerpoints!", "Points: " + points.size() + ", Top-Left Points: " + topLeft.size() + ", Top-Right Points: "
+  display("Welcome to centerpoints! v1.0", "Points: " + points.size() + ", Top-Left Points: " + topLeft.size() + ", Top-Right Points: "
     + topRight.size() + ", Bottom-Left Points: " + bottomLeft.size() + ", Bottom-Right Points: " + bottomRight.size());
   
   if (points.size() < MIN_POINTS) {
