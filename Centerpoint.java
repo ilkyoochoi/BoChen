@@ -27,11 +27,14 @@ ArrayList topLeft;
 ArrayList bottomLeft;
 ArrayList topRight;
 ArrayList bottomRight;
+ArrayList oldPoints;
 
 boolean runAlgo = false;
 boolean findRadon = false;
 boolean showRadon = false;
+boolean addPoints = true;
 
+String radonText = "Trim";
 Line L;
 Line hm1;
 Line hm2;
@@ -42,12 +45,16 @@ final int WINDOW_WIDTH = 600;
 final int WINDOW_HEIGHT = 600;
 final int BUTTON_WIDTH = 36;
 final int BUTTON_HEIGHT = 30;
-final int GO_X = WINDOW_WIDTH - BUTTON_WIDTH;
-final int GO_Y = WINDOW_HEIGHT - BUTTON_HEIGHT;
+final int RADON_X = WINDOW_WIDTH - BUTTON_WIDTH;
+final int RADON_Y = WINDOW_HEIGHT - BUTTON_HEIGHT;
 final int RESET_X = 0;
 final int RESET_Y = WINDOW_HEIGHT - BUTTON_HEIGHT;
-final int TEST_X = (WINDOW_WIDTH - BUTTON_WIDTH) / 2;
-final int TEST_Y = WINDOW_HEIGHT - BUTTON_HEIGHT;
+final int LINE_X = (WINDOW_WIDTH - 3 * BUTTON_WIDTH) / 2;
+final int LINE_Y = WINDOW_HEIGHT - BUTTON_HEIGHT;
+final int NOLINE_X = (WINDOW_WIDTH - BUTTON_WIDTH) / 2;
+final int NOLINE_Y = WINDOW_HEIGHT - BUTTON_HEIGHT;
+final int OLD_X = (WINDOW_WIDTH + BUTTON_WIDTH) / 2;
+final int OLD_Y = WINDOW_HEIGHT - BUTTON_HEIGHT;
 final int BACKGROUND_COLOR = 255;
 final int DRAW_COLOR = 0;
 final int REGION_COLOR = color(0, 255, 0);
@@ -99,31 +106,41 @@ public void setup() {
   rightPoints = new ArrayList();
   topPoints = new ArrayList();
   bottomPoints = new ArrayList();
+  oldPoints = new ArrayList();
 }
 
 public void reset() {
-  stroke(BACKGROUND_COLOR);
-  fill(BACKGROUND_COLOR);
-  rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-  stroke(DRAW_COLOR);
-  makeButtons();
-  fill(DRAW_COLOR);
   points.clear();
   lines.clear();
   leftPoints.clear();
   rightPoints.clear();
   topPoints.clear();
   bottomPoints.clear();
+  radonText = "Trim";
+  addPoints = true;
+  oldPoints.clear();
+  
+  stroke(BACKGROUND_COLOR);
+  fill(BACKGROUND_COLOR);
+  rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+  stroke(DRAW_COLOR);
+  makeButtons();
+  fill(DRAW_COLOR);
 }
 
 public void makeButtons() {
   rect(RESET_X, RESET_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
-  rect(GO_X, GO_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
-  rect(TEST_X, TEST_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
+  rect(RADON_X, RADON_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
+  rect(LINE_X, LINE_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
+  rect(NOLINE_X, NOLINE_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
+  rect(OLD_X, OLD_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
+  
   fill(DRAW_COLOR);
-  text("Clear", RESET_X + 2, RESET_Y + (3 * BUTTON_HEIGHT / 4));
-  text("Run", GO_X + 8, GO_Y + (3 * BUTTON_HEIGHT / 4));
-  text("Test", TEST_X + 6, TEST_Y + (3 * BUTTON_HEIGHT / 4));
+  text("Clear", RESET_X + 3, RESET_Y + (3 * BUTTON_HEIGHT / 4));
+  text(radonText, RADON_X + 5, RADON_Y + (3 * BUTTON_HEIGHT / 4));
+  text("Lines", LINE_X + 3, LINE_Y + (3 * BUTTON_HEIGHT / 4));
+  text("None", NOLINE_X + 4, NOLINE_Y + (3 * BUTTON_HEIGHT / 4));
+  text("Old", OLD_X + 8, OLD_Y + (3 * BUTTON_HEIGHT / 4));
   fill(BACKGROUND_COLOR);
 }
 		  
@@ -143,8 +160,13 @@ public void draw() {
       drawPoint((Point)points.get(i));
     }
       
-    delay(1500);
+    delay(1000);
     
+    if (radonText.equals("Done")) {
+      runAlgo = false;
+      drawCuts();
+      return;
+    }
     if (showRadon) {
       showRadon = false;
       drawCuts();
@@ -199,7 +221,7 @@ public void draw() {
     println(topLeft.size()+" "+topRight.size()+" "+bottomLeft.size()+" "+bottomRight.size());
     
     if (topLeft.isEmpty() || topRight.isEmpty() || bottomLeft.isEmpty() || bottomRight.isEmpty()) {
-      runAlgo = false;
+      radonText = "Done";
     }
     else {
       findRadon = true;
@@ -212,14 +234,14 @@ public void mousePressed() {
     return;
   }
   
-  if (mouseX > GO_X && mouseY > GO_Y) {
+  if (mouseX > LINE_X && mouseX < LINE_X + BUTTON_WIDTH && mouseY > LINE_Y && mouseY < LINE_Y + BUTTON_HEIGHT) {
     stroke(REGION_COLOR);
     fill(REGION_COLOR);
     rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
     
     stroke(BACKGROUND_COLOR);
     fill(BACKGROUND_COLOR);
-    centerpoint();
+    centerpoint(points);
     
     stroke(DRAW_COLOR);
     makeButtons();
@@ -228,20 +250,60 @@ public void mousePressed() {
     for (int i = 0; i < points.size(); i++) {
       drawPoint((Point)points.get(i));
       for (int j = i+1; j < points.size(); j++) {
-        line(((Point)points.get(i)).x, ((Point)points.get(i)).y, ((Point)points.get(j)).x, ((Point)points.get(j)).y);
+        drawLine(new Line((Point)points.get(i), (Point)points.get(j)));
       }
     }
   }
-  else if (mouseX < RESET_X + BUTTON_WIDTH && mouseY > RESET_Y) {
+  else if (mouseX > NOLINE_X && mouseX < NOLINE_X + BUTTON_WIDTH && mouseY > NOLINE_Y && mouseY < NOLINE_Y + BUTTON_HEIGHT) {
+    stroke(REGION_COLOR);
+    fill(REGION_COLOR);
+    rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    
+    stroke(BACKGROUND_COLOR);
+    fill(BACKGROUND_COLOR);
+    centerpoint(points);
+    
+    stroke(DRAW_COLOR);
+    makeButtons();
+    fill(DRAW_COLOR);
+    
+    for (int i = 0; i < points.size(); i++) {
+      drawPoint((Point)points.get(i));
+    }
+  }
+  else if (mouseX > OLD_X && mouseX < OLD_X + BUTTON_WIDTH && mouseY > OLD_Y && mouseY < OLD_Y + BUTTON_HEIGHT) {
+    ArrayList oldList = oldPoints.isEmpty() ? points : oldPoints;
+    
+    stroke(RED);
+    fill(RED);
+    rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
+    
+    stroke(BACKGROUND_COLOR);
+    fill(BACKGROUND_COLOR);
+    centerpoint(oldList);
+    
+    stroke(DRAW_COLOR);
+    makeButtons();
+    fill(DRAW_COLOR);
+    
+    for (int i = 0; i < points.size(); i++) {
+      drawPoint((Point)points.get(i));
+    }
+  }
+  else if (mouseX > RESET_X && mouseX < RESET_X + BUTTON_WIDTH && mouseY > RESET_Y && mouseY < RESET_Y + BUTTON_HEIGHT) {
     reset();
   }
-  else if (mouseX > TEST_X && mouseX < TEST_X + BUTTON_WIDTH && mouseY > TEST_Y) {
+  else if (mouseX > RADON_X && mouseX < RADON_X + BUTTON_WIDTH && mouseY > RADON_Y && mouseY < RADON_Y + BUTTON_HEIGHT) {
     runAlgo = true;
+    addPoints = false;
+    oldPoints.addAll(points);
   }
   else {
-    Point p = new Point(mouseX, mouseY);
-    points.add(p);
-    drawPoint(p);
+    if (addPoints) {
+      Point p = new Point(mouseX, mouseY);
+      points.add(p);
+      drawPoint(p);
+    }
   }
 }
 
@@ -457,6 +519,9 @@ public ArrayList getIntersection(ArrayList list1, ArrayList list2) {
 }
 
 public void loadTopBottom(Line top, Line bottom) {
+  topPoints.clear();
+  bottomPoints.clear();
+  
   // Why write a comparator when you can implement bubble sort?
   for (int i = 0; i < points.size(); i++) {
     for (int j = 0; j < points.size() - 1; j++) {
@@ -518,8 +583,8 @@ public Line findL() {
 
 public Line getHSC(ArrayList leftPoints, ArrayList rightPoints, float leftRatio, float rightRatio, int topTarget) {
   ArrayList candidates = new ArrayList();
-  int leftTarget = Math.round(leftRatio * leftPoints.size());
-  int rightTarget = Math.round(rightRatio * rightPoints.size());
+  int leftTarget = round(leftRatio * leftPoints.size());
+  int rightTarget = round(rightRatio * rightPoints.size());
   for (int i = 0; i < points.size(); i++) {
     for (int j = i + 1; j < points.size(); j++) {
       Point a = (Point)points.get(i);
@@ -533,7 +598,7 @@ public Line getHSC(ArrayList leftPoints, ArrayList rightPoints, float leftRatio,
         }
       }
       //println ("Target is " + leftTarget + " and left count is " + leftCount + " a " + leftPoints.contains(a) + " b " + leftPoints.contains(b));
-      if (Math.abs(leftCount - leftTarget) > 1) {
+      if (abs(leftCount - leftTarget) > 1) {
         if (leftTarget - leftCount == 2 && (leftPoints.contains(a) || leftPoints.contains(b))) {
           if (leftPoints.contains(a)) {
             shiftA = true;
@@ -559,7 +624,7 @@ public Line getHSC(ArrayList leftPoints, ArrayList rightPoints, float leftRatio,
         }
       }
       //println ("Target is " + rightTarget + " and right count is " + rightCount + " a " + rightPoints.contains(a) + " b " + rightPoints.contains(b));
-      if (Math.abs(rightCount - rightTarget) < 2 && topTarget == leftCount + rightCount) {
+      if (abs(rightCount - rightTarget) < 2 && topTarget == leftCount + rightCount) {
         a = new Point(a.x, shiftA ? a.y + EPSILON : a.y - EPSILON);
         b = new Point(b.x, shiftB ? b.y + EPSILON : b.y - EPSILON);
         candidates.add(new Line(a, b));
@@ -587,11 +652,11 @@ public Line getHSC(ArrayList leftPoints, ArrayList rightPoints, float leftRatio,
     return firstLine;
   }
   Line maxLine = firstLine;
-  float maxSlope = Math.abs((firstLine.b.x - firstLine.a.x) / (firstLine.b.y - firstLine.a.y));
+  float maxSlope = abs((firstLine.b.x - firstLine.a.x) / (firstLine.b.y - firstLine.a.y));
   for (int i = 1; i < candidates.size(); i++) {
     Line nextLine = (Line)candidates.get(i);
-    if (maxSlope < Math.abs((nextLine.b.x - nextLine.a.x) / (nextLine.b.y - nextLine.a.y))) {
-      maxSlope = Math.abs((nextLine.b.x - nextLine.a.x) / (nextLine.b.y - nextLine.a.y));
+    if (maxSlope < abs((nextLine.b.x - nextLine.a.x) / (nextLine.b.y - nextLine.a.y))) {
+      maxSlope = abs((nextLine.b.x - nextLine.a.x) / (nextLine.b.y - nextLine.a.y));
       maxLine = nextLine;
     }
   }
@@ -682,18 +747,18 @@ public Line getHSC2(ArrayList leftPoints, ArrayList rightPoints, int leftTarget,
     return firstLine;
   }
   Line maxLine = firstLine;
-  float maxSlope = Math.abs((firstLine.b.y - firstLine.a.y) / (firstLine.b.x - firstLine.a.x));
+  float maxSlope = abs((firstLine.b.y - firstLine.a.y) / (firstLine.b.x - firstLine.a.x));
   for (int i = 1; i < candidates.size(); i++) {
     Line nextLine = (Line)candidates.get(i);
-    if (maxSlope < Math.abs((nextLine.b.y - nextLine.a.y) / (nextLine.b.x - nextLine.a.x))) {
-      maxSlope = Math.abs((nextLine.b.y - nextLine.a.y) / (nextLine.b.x - nextLine.a.x));
+    if (maxSlope < abs((nextLine.b.y - nextLine.a.y) / (nextLine.b.x - nextLine.a.x))) {
+      maxSlope = abs((nextLine.b.y - nextLine.a.y) / (nextLine.b.x - nextLine.a.x));
       maxLine = nextLine;
     }
   }
   return maxLine;
 }
 
-public void centerpoint() {
+public void centerpoint(ArrayList points) {
   int min = (points.size() + 2) / 3;
   Line top = new Line(new Point(0, 0), new Point(WINDOW_WIDTH, 0));
   Line bottom = new Line(new Point(0, WINDOW_HEIGHT), new Point(WINDOW_WIDTH, WINDOW_HEIGHT));
@@ -710,8 +775,6 @@ public void centerpoint() {
         else if (isCCW((Point)points.get(j), (Point)points.get(i), (Point)points.get(k))) {
           count2++;
         }
-        //lines.add(new Line((Point)points.get(i), (Point)points.get(j)));
-        //line(((Point)points.get(i)).x, ((Point)points.get(i)).y, ((Point)points.get(j)).x, ((Point)points.get(j)).y);
       }
       Point a = (Point)points.get(i);
       Point b = (Point)points.get(j);
