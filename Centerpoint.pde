@@ -773,7 +773,7 @@ void centerpoint(ArrayList points) {
       int count2 = 0;
       Point a = (Point)points.get(i);
       Point b = (Point)points.get(j);
-      if (a.y < b.y) {
+      if (a.y < b.y || (a.y == b.y && a.x > b.x)) {
         Point temp = a;
         a = b;
         b = temp;
@@ -790,7 +790,7 @@ void centerpoint(ArrayList points) {
       Line halfSpaceLine = stretchLine(new Line(a, b));
       a = halfSpaceLine.a;
       b = halfSpaceLine.b;
-      if (a.y < b.y) {
+      if (a.y < b.y || (a.y == b.y && a.x > b.x)) {
         b = a;
         a = halfSpaceLine.b;
       }
@@ -809,7 +809,7 @@ void centerpoint(ArrayList points) {
       boolean flipped = count2 < min;
       
       if (a.y == b.y) {
-        if (a.x < b.x == flipped) {
+        if (flipped) {
          rect(0, a.y, WINDOW_WIDTH, WINDOW_HEIGHT);
         }
         else {
