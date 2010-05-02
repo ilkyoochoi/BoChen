@@ -87,6 +87,10 @@ class Point {
     this.x = x;
     this.y = y;
   }
+  
+  public boolean equals (Object o) {
+    return (o instanceof Point) && ((Point)o).x == x && ((Point)o).y == y;
+  }
 }
 
 class Line {
@@ -335,8 +339,10 @@ public void mousePressed() {
   else if (mouseY < WINDOW_HEIGHT - BUTTON_HEIGHT) {
     if (addPoints) {
       Point p = new Point(mouseX, mouseY);
-      points.add(p);
-      drawPoint(p);
+      if (!points.contains(p)) {
+        points.add(p);
+        drawPoint(p);
+      }
     }
   }
 }
@@ -359,7 +365,7 @@ public boolean drawRadon(ArrayList a, ArrayList b, ArrayList c, ArrayList d) {
   Point p3 = (Point)c.get(0);
   Point p4 = (Point)d.get(0);
   
-  if (p1.equals(p2)) {
+  if (p1 == p2) {
     if (a.size() > b.size()) {
       a.remove(p1);
     }
@@ -368,7 +374,7 @@ public boolean drawRadon(ArrayList a, ArrayList b, ArrayList c, ArrayList d) {
     }
     return false;
   }
-  else if (p1.equals(p3)) {
+  else if (p1 == p3) {
     if (a.size() > c.size()) {
       a.remove(p1);
     }
@@ -377,7 +383,7 @@ public boolean drawRadon(ArrayList a, ArrayList b, ArrayList c, ArrayList d) {
     }
     return false;
   }
-  else if (p1.equals(p4)) {
+  else if (p1 == p4) {
     if (a.size() > d.size()) {
       a.remove(p1);
     }
@@ -386,7 +392,7 @@ public boolean drawRadon(ArrayList a, ArrayList b, ArrayList c, ArrayList d) {
     }
     return false;
   }
-  else if (p2.equals(p3)) {
+  else if (p2 == p3) {
     if (b.size() > c.size()) {
       b.remove(p2);
     }
@@ -395,7 +401,7 @@ public boolean drawRadon(ArrayList a, ArrayList b, ArrayList c, ArrayList d) {
     }
     return false;
   }
-  else if (p2.equals(p4)) {
+  else if (p2 == p4) {
     if (b.size() > d.size()) {
       b.remove(p2);
     }
@@ -404,7 +410,7 @@ public boolean drawRadon(ArrayList a, ArrayList b, ArrayList c, ArrayList d) {
     }
     return false;
   }
-  else if (p3.equals(p4)) {
+  else if (p3 == p4) {
     if (c.size() > d.size()) {
       c.remove(p3);
     }
@@ -621,6 +627,9 @@ public Line getHSC(ArrayList leftPoints, ArrayList rightPoints, float leftRatio,
     for (int j = i + 1; j < points.size(); j++) {
       Point a = (Point)points.get(i);
       Point b = (Point)points.get(j);
+      if (a.equals(b)) {
+        continue;
+      }
       boolean shiftA = false;
       boolean shiftB = false;
       int leftCount = 0;
@@ -699,6 +708,9 @@ public Line getHSC2(ArrayList topPoints, ArrayList bottomPoints, int topTarget, 
     for (int j = i + 1; j < points.size(); j++) {
       Point a = (Point)points.get(i);
       Point b = (Point)points.get(j);
+      if (a.equals(b)) {
+        continue;
+      }
       Line testLine = new Line(a, b);
       Point x1 = hm1.getIntersect(testLine);
       Point x2 = hm2.getIntersect(testLine);
@@ -792,6 +804,10 @@ public void centerpoint(ArrayList points) {
       int count2 = 0;
       Point a = (Point)points.get(i);
       Point b = (Point)points.get(j);
+      if (a.equals(b)) {
+        continue;
+      }
+      
       if (a.y < b.y || (a.y == b.y && a.x > b.x)) {
         Point temp = a;
         a = b;
